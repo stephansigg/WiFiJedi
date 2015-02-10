@@ -1,0 +1,55 @@
+\begin{thebibliography}{1}
+
+\bibitem{RFSensing_Kellog_2014}
+Bringing gesture recognition to all devices.
+\newblock In {\em Presented as part of the 11th USENIX Symposium on Networked
+  Systems Design and Implementation}, Berkeley, CA, 2014. USENIX.
+
+\bibitem{RFSensing_Adib_2014}
+F.~Adib, Z.~Kabelac, D.~Katabi, and R.~C. Miller.
+\newblock 3d tracking via body radio reflections.
+\newblock available online: http://witrack.csail.mit.edu/witrack-paper.pdf,
+  2014.
+\newblock Usenix NSDI’14 - to appear.
+
+\bibitem{Pervasive_Adib_2013}
+Fadel Adib and Dina Katabi.
+\newblock See through walls with wi-fi.
+\newblock In {\em ACM SIGCOMM'13}, 2013.
+
+\bibitem{RFsensing_Kim_2009}
+Youngwook Kim and Hao Ling.
+\newblock Human activity classification based on micro-doppler signatures using
+  a support vector machine.
+\newblock {\em IEEE Transactions on Geoscience and Remote Sensing},
+  47(5):1328--1337, 2009.
+
+\bibitem{RFsensing_Pu_2013}
+Qifan Pu, Sidhant Gupta, Shyam Gollakota, and Shwetak Patel.
+\newblock Whole-home gesture recognition using wireless signals.
+\newblock In {\em The 19th Annual International Conference on Mobile Computing
+  and Networking (Mobicom'13)}, 2013.
+
+\bibitem{RFSensing_Sigg_2014}
+Stephan Sigg, Ulf Blanke, and Gerhard Troester.
+\newblock The telepathic phone: Frictionless activity recognition from
+  wifi-rssi.
+\newblock In {\em IEEE International Conference on Pervasive Computing and
+  Communications (PerCom)}, PerCom '14, 2014.
+
+\bibitem{Pervasive_Sigg_2014}
+Stephan Sigg, Mario Hock, Markus Scholz, Gerhard Troester, Lars Wolf, Yusheng
+  Ji, and Michael Beigl.
+\newblock Passive, device-free recognition on your mobile phone: tools,
+  features and a case study.
+\newblock In {\em Proceedings of the 10th International Conference on Mobile
+  and Ubiquitous Systems: Computing, Networking and Services}, 2013.
+
+\bibitem{Pervasive_Sigg_2014b}
+Stephan Sigg, Shuyu Shi, and Yusheng Ji.
+\newblock Teach your wifi-device: Recognise gestures and simultaneous
+  activities from time-domain rf-features.
+\newblock {\em International Journal on Ambient Computing and Intelligence
+  (IJACI)}, 6(1), 2014.
+
+\end{thebibliography}

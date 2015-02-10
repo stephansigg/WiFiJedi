@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WiFiJedi</string>
+    <string name="action_settings">Settings</string>
+    <string name="main:Init">Init</string>
+    <string name="main:Scan">Scan</string>
+    <string name="main:Slideshow">Slideshow</string>
+    <string name="main:DefaultText">No networks scanned yet</string>
+    <string name="title_activity_network_checker">NetworkChecker</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_network_scanner">NetworkScanner</string>
+    <string name="BACK">Back</string>
+    <string name="CONTINUE">Continue</string>
+    <string name="scanInit">The scanned networks will be listed here \nPlease use the SCAN-button to scan aailiable networks</string>
+    <string name="title_activity_slideshow">Slideshow</string>
+
+</resources>
