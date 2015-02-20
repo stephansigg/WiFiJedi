@@ -2,6 +2,7 @@ package com.crauterb.wifijedi;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,10 +17,13 @@ import com.crauterb.wifijedi.rssiReader.RSSIFileReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 
 public class Slideshow extends ActionBarActivity {
+
+    private static Random rand = new Random();
 
     final private static int[] movementList = new int[]{R.drawable.swipeleft, R.drawable.swiperight, R.drawable.towards, R.drawable.away};
     final private static int[] imageList = new int[] {R.drawable.image1, R.drawable.image2, R.drawable.image3, R.drawable.image4, R.drawable.image5, R.drawable.image6};
@@ -44,6 +48,7 @@ public class Slideshow extends ActionBarActivity {
         setContentView(R.layout.activity_slideshow);
         SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
         myLearner = new RSSILearner(0.2);
+        this.isCaptureActive = false;
     }
 
 
@@ -73,16 +78,32 @@ public class Slideshow extends ActionBarActivity {
 
         // @TODO: LOAD FROM OPTIONS HERE,WHICH CLASSES ARE TO BE LEARNED
 
-        ImageView image;
+        final ImageView image;
         image = (ImageView) findViewById(R.id.imageView);
         System.out.println("Capturing disturbed data");
-        image.setImageResource(movementList[0]);
+        image.setImageResource(movementList[currentMovementImageID]);
 
         Capture myCapture;
         double time = getSysTime();
-        recordIntoFile(RSSILearner.FILENAME_CLASS_SWIPE_LEFT);
 
-        myCapture = red.readFile("/sdcard/wifiJedi_data/" + RSSILearner.FILENAME_CLASS_SWIPE_LEFT + ".rssi", time, time+captureTime);
+        final Handler localHandler = new Handler();
+        Runnable runnableObject = new Runnable() {
+            public void run() {
+                image.setImageResource(movementList[currentMovementImageID++%4]);
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            }
+        };
+        for (int j=0;j<10;j++){
+            localHandler.postDelayed(runnableObject, 1000);
+        }
+
+
 
         System.out.println("Training data successfully created");
 
@@ -93,11 +114,33 @@ public class Slideshow extends ActionBarActivity {
         image = (ImageView) findViewById(R.id.imageView);
 
         image.setImageResource(imageList[currentImageID++%6]);
+        isCaptureActive = true;
+        int t;
+        while(true) {
+            // record
+            System.out.println("START SIDESHOW");
+
+            recordIntoFile("toClassifyInSlideshow");
+            System.out.println("CAPTURE COMPLETE");
+            // evaluate file within classifier
+            //@TODO: Add correct classifier here
+            t = randInt(1,10);
+            if ( t <= 3 ) {
+                image.setImageResource(imageList[currentImageID++%6]);
+            }
+            if ( !isCaptureActive ) {
+                break;
+            } else {
+                continue;
+            }
+
+        }
+
     }
 
     public void stopCapture(View view){
         System.out.println("Stopping capture");
-        isCaptureActive = true;
+        isCaptureActive = false;
     }
 
     public int getCaptureTime() {
@@ -109,7 +152,7 @@ public class Slideshow extends ActionBarActivity {
     }
 
     private void recordIntoFile(String filename) {
-        scanTask.record(captureTime,filename);
+        new StartTcpdumpTask().record(captureTime,filename);
         try {
             System.out.println("WE SHOULD SLEEP HERE");
             TimeUnit.SECONDS.sleep(captureTime + 1);
@@ -117,6 +160,7 @@ public class Slideshow extends ActionBarActivity {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        scanTask.cancel(true);
     }
 
     private double getSysTime() {
@@ -125,5 +169,12 @@ public class Slideshow extends ActionBarActivity {
         Date date = new Date();
         String time = dateFormat.format(date);
         return red.formatTime(time,true);
+    }
+
+    private int randInt(int min, int max) {
+
+        // nextInt is normally exclusive of the top value,
+        // so add 1 to make it inclusive
+        return rand.nextInt((max - min) + 1) + min;
     }
 }

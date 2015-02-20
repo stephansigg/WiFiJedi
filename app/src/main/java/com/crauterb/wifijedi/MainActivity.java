@@ -1,6 +1,7 @@
 package com.crauterb.wifijedi;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -23,6 +24,10 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         TextView tv = (TextView) findViewById(R.id.defautlText);
         tv.setText("Welcome young one. \n Please press the INIT-Button to start with the setup.");
+        SharedPreferences preferences = getSharedPreferences(MainActivity.PREFS_NAME, 0);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.clear();
+        editor.commit();
     }
 
 
@@ -71,6 +76,16 @@ public class MainActivity extends ActionBarActivity {
         //StartTcpdumpTask scanTask = new StartTcpdumpTask();
         //scanTask.record(4,"initialScan");
         Intent intent = new Intent(this, NetworkScanner.class);
+        startActivity(intent);
+    }
+
+    /**
+     * Method for starting the setup
+     */
+    public void startRecord(View view) {
+        //StartTcpdumpTask scanTask = new StartTcpdumpTask();
+        //scanTask.record(4,"initialScan");
+        Intent intent = new Intent(this, RecordThingy.class);
         startActivity(intent);
     }
 }

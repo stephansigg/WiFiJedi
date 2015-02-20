@@ -21,8 +21,7 @@ public class NetworkChecker extends ActionBarActivity {
         SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
         int i = 0;
         String t = "";
-        // @TODO: Hier die Liste vom Scanner einlesen und dann verteilen
-        // Jetzt nur zu testzwecken:
+
         //Box 1
         t = settings.getString("NET01", "");
         CheckBox c = (CheckBox) findViewById(R.id.NetcheckBox1);
@@ -111,7 +110,7 @@ public class NetworkChecker extends ActionBarActivity {
         editor.putBoolean("UseNet4", ((CheckBox) findViewById(R.id.NetcheckBox4)).isChecked());
         editor.putBoolean("UseNet5", ((CheckBox) findViewById(R.id.NetcheckBox5)).isChecked());
         editor.commit();
-        Intent intent = new Intent(this, Slideshow.class);
+        Intent intent = new Intent(this, DecisionAcivity.class);
         startActivity(intent);
     }
 

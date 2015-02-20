@@ -3,6 +3,11 @@
     package="com.crauterb.wifijedi" >
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera"
+
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -29,6 +34,18 @@
         <activity
             android:name="com.crauterb.wifijedi.Slideshow"
             android:label="@string/title_activity_slideshow" >
+        </activity>
+        <activity
+            android:name="com.crauterb.wifijedi.RecordThingy"
+            android:label="@string/title_activity_record_thingy" >
+        </activity>
+        <activity
+            android:name="com.crauterb.wifijedi.DecisionAcivity"
+            android:label="@string/title_activity_decision_acivity" >
+        </activity>
+        <activity
+            android:name="com.crauterb.wifijedi.Snapshot"
+            android:label="@string/title_activity_snapshot" >
         </activity>
     </application>
 

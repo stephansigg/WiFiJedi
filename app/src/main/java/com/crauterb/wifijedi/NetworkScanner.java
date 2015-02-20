@@ -66,7 +66,7 @@ public class NetworkScanner extends ActionBarActivity {
     }
 
     public void startScan(View view) {
-        int captureTime = 5;
+        int captureTime = 10;
         int sleepTime = 2;
         RSSIFileReader red = new RSSIFileReader();
         StartTcpdumpTask scanTask = new StartTcpdumpTask();
@@ -93,6 +93,7 @@ public class NetworkScanner extends ActionBarActivity {
         String t = "";
         SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
+        editor.clear(); editor.commit();
         ArrayList<Network> ins = initCap.getFiveMostActiveNetworks();
         if ( ins == null || ins.isEmpty())
             System.out.println("ÖÖÖHM, FEHLER?");

@@ -14,5 +14,8 @@
     <string name="CONTINUE">Continue</string>
     <string name="scanInit">The scanned networks will be listed here \nPlease use the SCAN-button to scan aailiable networks</string>
     <string name="title_activity_slideshow">Slideshow</string>
+    <string name="title_activity_record_thingy">RecordThingy</string>
+    <string name="title_activity_decision_acivity">DecisionAcivity</string>
+    <string name="title_activity_snapshot">Snapshot</string>
 
 </resources>

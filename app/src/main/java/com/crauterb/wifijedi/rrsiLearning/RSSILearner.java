@@ -1,6 +1,5 @@
 package com.crauterb.wifijedi.rrsiLearning;
 
-import net.sf.javaml.classification.Classifier;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
@@ -10,8 +9,6 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import libsvm.LibSVM;
 
 /**
  * Created by christoph on 10.02.15.
@@ -60,9 +57,9 @@ public class RSSILearner {
     /** Position to count for the Class Label*/
     public static final int POS_LABEL = 6;
 
-    private Classifier svm;
+    //private Classifier svm;
 
-    private Classifier[] netSVMS;
+    //private Classifier[] netSVMS;
     private Dataset[] netLearningData;
 
     private Dataset learningData;
@@ -73,7 +70,7 @@ public class RSSILearner {
 
     public RSSILearner(double timeslice) {
         this.learningData = new DefaultDataset();
-        this.svm = new LibSVM();
+        //this.svm = new LibSVM();
         this.timeSlice = timeslice;
         this.noun = 1;
     }
@@ -101,7 +98,7 @@ public class RSSILearner {
         }
         try {
             for( Instance i : DataToClassify) {
-                numbers[(Integer) this.svm.classify(i)]++;
+                //numbers[(Integer) this.svm.classify(i)]++;
             }
         } catch ( Exception e ) {
             System.out.println("ERROR WHILST CLASSIFYING");
@@ -125,10 +122,10 @@ public class RSSILearner {
 
     public void setUsedNetworks( int noun) {
         this.noun = noun;
-        this.netSVMS = new Classifier[noun];
+        //this.netSVMS = new Classifier[noun];
         this.netLearningData = new Dataset[noun];
-        for( int i = 0; i < netSVMS.length; i++) {
-            netSVMS[i] = new LibSVM();
+        for( int i = 0; i < netLearningData.length; i++) {
+            //netSVMS[i] = new LibSVM();
             netLearningData[i] = new DefaultDataset();
         }
     }

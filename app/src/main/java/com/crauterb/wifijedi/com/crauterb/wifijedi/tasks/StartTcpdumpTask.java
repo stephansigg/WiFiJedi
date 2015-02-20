@@ -42,4 +42,9 @@ public class StartTcpdumpTask extends AsyncTask<String, Void, Void> {
         System.out.println("--->Done Here");
         return null;
     }
+    
+    public Void onPostExecute(Integer result) {
+        Shell.SU.run("pkill tcpdump");
+        return null;
+    }
 }
