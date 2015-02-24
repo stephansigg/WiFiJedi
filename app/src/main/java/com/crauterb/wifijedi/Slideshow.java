@@ -1,8 +1,8 @@
 package com.crauterb.wifijedi;
 
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,6 +26,7 @@ public class Slideshow extends ActionBarActivity {
     private static Random rand = new Random();
 
     final private static int[] movementList = new int[]{R.drawable.swipeleft, R.drawable.swiperight, R.drawable.towards, R.drawable.away};
+    final private static int[] stop = new int[]{R.drawable.stop};
     final private static int[] imageList = new int[] {R.drawable.image1, R.drawable.image2, R.drawable.image3, R.drawable.image4, R.drawable.image5, R.drawable.image6};
     private  int currentImageID = 0;
     private int currentMovementImageID = 0;
@@ -34,6 +35,10 @@ public class Slideshow extends ActionBarActivity {
     public static int MOVEMENT_SWIPERIGHT = 1;
     public static int MOVEMENT_TOWARDS = 2;
     public static int MOVEMENT_AWAY = 3;
+
+    public int pos;
+    int[] classesToBeTrained  = {MOVEMENT_SWIPELFT, MOVEMENT_TOWARDS};
+    int numberOfTimeSlices = 5;
 
     private boolean isCaptureActive = false;
     private StartTcpdumpTask scanTask = new StartTcpdumpTask();
@@ -78,64 +83,31 @@ public class Slideshow extends ActionBarActivity {
 
         // @TODO: LOAD FROM OPTIONS HERE,WHICH CLASSES ARE TO BE LEARNED
 
+        int timeslicetime = 2;
+
         final ImageView image;
-        image = (ImageView) findViewById(R.id.imageView);
+        image = (ImageView) findViewById(R.id.slideshowView);
         System.out.println("Capturing disturbed data");
-        image.setImageResource(movementList[currentMovementImageID]);
+        System.out.println(image.toString());
+        //image.setImageResource(movementList[currentMovementImageID]);
 
         Capture myCapture;
         double time = getSysTime();
-
-        final Handler localHandler = new Handler();
-        Runnable runnableObject = new Runnable() {
-            public void run() {
-                image.setImageResource(movementList[currentMovementImageID++%4]);
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-            }
-        };
-        for (int j=0;j<10;j++){
-            localHandler.postDelayed(runnableObject, 1000);
-        }
-
-
-
+        System.out.println("START TRAINING");
+        isCaptureActive = true;
+        new TrainingThisTask(5,classesToBeTrained, timeslicetime, 0,0).execute();
+        System.out.println("Done here");
         System.out.println("Training data successfully created");
 
     }
 
     public void startSlideshow(View view) {
-        ImageView image;
-        image = (ImageView) findViewById(R.id.imageView);
-
-        image.setImageResource(imageList[currentImageID++%6]);
         isCaptureActive = true;
-        int t;
-        while(true) {
-            // record
-            System.out.println("START SIDESHOW");
-
-            recordIntoFile("toClassifyInSlideshow");
-            System.out.println("CAPTURE COMPLETE");
-            // evaluate file within classifier
-            //@TODO: Add correct classifier here
-            t = randInt(1,10);
-            if ( t <= 3 ) {
-                image.setImageResource(imageList[currentImageID++%6]);
-            }
-            if ( !isCaptureActive ) {
-                break;
-            } else {
-                continue;
-            }
-
-        }
-
+        ImageView image;
+        image = (ImageView) findViewById(R.id.slideshowView);
+        System.out.println(image.toString());
+        image.setImageResource(imageList[0]);
+        new AnalyzeTask(0).execute();
     }
 
     public void stopCapture(View view){
@@ -176,5 +148,117 @@ public class Slideshow extends ActionBarActivity {
         // nextInt is normally exclusive of the top value,
         // so add 1 to make it inclusive
         return rand.nextInt((max - min) + 1) + min;
+    }
+
+    private class TrainingThisTask extends AsyncTask<Void, Void, Integer> {
+
+        private int timeSliceDuration;
+
+        private int numberOfTimeSlices;
+
+        private int[] classesToBeTrained;
+
+        int pos = 0;
+
+        int count;
+
+        public TrainingThisTask( int numberOfTimeSlices, int [] classesToBeTrained, int timeSliceDuration, int pos, int count){
+            this.timeSliceDuration = timeSliceDuration;
+            this.numberOfTimeSlices = numberOfTimeSlices;
+            this.classesToBeTrained = classesToBeTrained;
+            this.pos = pos;
+            this.count = count;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            ImageView image = (ImageView) findViewById(R.id.slideshowView);
+            if ( count < numberOfTimeSlices*classesToBeTrained.length && isCaptureActive) {
+                image.setImageResource(movementList[classesToBeTrained[pos++ % classesToBeTrained.length]]);
+            }
+        }
+
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(100);
+                // RECORD
+                System.out.println("WE SHOULD SLEEP HERE");
+                TimeUnit.SECONDS.sleep(timeSliceDuration);
+                TimeUnit.MILLISECONDS.sleep(100);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return 1;
+        }
+
+        public void onPostExecute(Integer result) {
+
+            if ( count < numberOfTimeSlices*classesToBeTrained.length && isCaptureActive) {
+                System.out.println("Run new task");
+                System.out.println(count);
+                new TrainingThisTask(this.numberOfTimeSlices,this.classesToBeTrained, this.timeSliceDuration, this.pos++%this.classesToBeTrained.length,  this.count+1).execute();
+            } else {
+                System.out.println("Done for the day");
+                ImageView image = (ImageView) findViewById(R.id.slideshowView);
+                image.setImageResource(android.R.color.transparent);
+                return;
+            }
+        }
+    }
+
+    private class AnalyzeTask extends AsyncTask<Void, Void, Integer> {
+
+        private int timeSliceDuration = 2;
+
+        private int pos;
+
+        @Override
+        protected void onPreExecute() {
+
+        }
+
+        public AnalyzeTask(int pos) {
+            this.pos = pos;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... params) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(100);
+                // RECORD
+                System.out.println("WE SHOULD SLEEP HERE");
+                TimeUnit.SECONDS.sleep(timeSliceDuration);
+                TimeUnit.MILLISECONDS.sleep(100);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                return -1;
+            }
+            return 1;
+        }
+
+        @Override
+        public void onPostExecute(Integer result) {
+            ImageView image = (ImageView) findViewById(R.id.slideshowView);
+            int label;
+
+            // EVALUATE THE READ VALUES
+            label = randInt(1,10);
+            System.out.println("Label = " + label);
+            if  ( label > 8 ) {
+                image.setImageResource(imageList[(pos+1)%imageList.length]);
+            }
+            if ( isCaptureActive )
+                new AnalyzeTask(pos+1).execute();
+            else {
+                System.out.println("Done for the day with the slideshow");
+                image.setImageResource(stop[0]);
+            }
+        }
+
+
     }
 }

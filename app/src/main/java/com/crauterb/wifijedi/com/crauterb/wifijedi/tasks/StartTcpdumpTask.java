@@ -13,7 +13,7 @@ import eu.chainfire.libsuperuser.Shell;
 /**
  * Created by christoph on 26.01.15.
  */
-public class StartTcpdumpTask extends AsyncTask<String, Void, Void> {
+public class StartTcpdumpTask extends AsyncTask<String, Void, Integer> {
 
     /** Need parameter here for recording time */
     private int time;
@@ -24,8 +24,12 @@ public class StartTcpdumpTask extends AsyncTask<String, Void, Void> {
         this.execute(filename);
     }
     @Override
-    public Void doInBackground(String... filename) {
+    public void onPreExecute(){
         Shell.SU.run("mkdir -p /sdcard/wifiJedi_data");
+    }
+    @Override
+    public Integer doInBackground(String... filename) {
+
         String delCommand = "rm /sdcard/wifiJedi_data/" + filename + ".rssi";
         Shell.SU.run(delCommand );
         String cdCommand = "cd /sdcard/wifiJedi_data";
@@ -43,8 +47,8 @@ public class StartTcpdumpTask extends AsyncTask<String, Void, Void> {
         return null;
     }
     
-    public Void onPostExecute(Integer result) {
+    public void onPostExecute(Integer result) {
         Shell.SU.run("pkill tcpdump");
-        return null;
+        return;
     }
 }
