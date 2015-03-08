@@ -1,6 +1,9 @@
 package com.crauterb.wifijedi.rrsiLearning;
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by christoph on 09.02.15.
@@ -60,6 +63,34 @@ public class Network {
             else if ( n.timestamp >= end )
                 return slot;
         }
-        return null;
+        return slot;
+    }
+
+    public double[] computeFeaturesForSlot(double start, double end) {
+        double[] features = new double[RSSILearner.NUMBER_OF_FEATURES];
+        List<Integer> slot = getTimeSlot(start,end);
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+        for( int x : slot) {
+            stats.addValue((double) x);
+        }
+        String t = "RSSI: [";
+        for ( int i = 0; i < slot.size(); i++){
+            t += slot.get(i) + ",";
+        }
+        t += "]";
+        System.out.println(t);
+        features[RSSILearner.POS_RSSIMEAN] = stats.getMean();
+        features[RSSILearner.POS_RSSIMAX] = stats.getMax();
+        features[RSSILearner.POS_RSSIMIN] = stats.getMin();
+        features[RSSILearner.POS_RSSISTD] = stats.getStandardDeviation();
+        features[RSSILearner.POS_NUMBEROFRSSI] = slot.size();
+        System.out.println("Computed Feature");
+        t = "f_[";
+        for( int i = 0; i < features.length; i++) {
+            t += features[i] + ",";
+        }
+        t += "]";
+        System.out.println(t);
+        return features;
     }
 }

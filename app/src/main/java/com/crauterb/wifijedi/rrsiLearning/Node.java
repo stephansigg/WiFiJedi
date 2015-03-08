@@ -9,16 +9,22 @@ public class Node {
 
     protected int RSSI;
 
+    protected String MAC;
+
     public Node() {
         this.timestamp = -1;
         this.RSSI = -100;
     }
 
-    public Node(double timestamp, int RSSI) {
+    public Node(double timestamp, int RSSI, String MAC) {
         this.timestamp = timestamp;
         this.RSSI = RSSI;
+        this.MAC = MAC;
     }
 
+    public String toString() {
+        return "" + this.timestamp +": " + this.RSSI;
+    }
 
     public double getTimestamp() {
         return timestamp;

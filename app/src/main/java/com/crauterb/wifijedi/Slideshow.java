@@ -16,8 +16,12 @@ import com.crauterb.wifijedi.rssiReader.RSSIFileReader;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 
@@ -39,9 +43,13 @@ public class Slideshow extends ActionBarActivity {
     public int pos;
     int[] classesToBeTrained  = {MOVEMENT_SWIPELFT, MOVEMENT_TOWARDS};
     int numberOfTimeSlices = 5;
+    Set<String> macsToBeUsed = new HashSet<String>();
+
+    ArrayList<Capture> trainingCaptures;
+
 
     private boolean isCaptureActive = false;
-    private StartTcpdumpTask scanTask = new StartTcpdumpTask();
+
     private RSSIFileReader red = new RSSIFileReader();
 
     private int captureTime = 5;
@@ -53,7 +61,25 @@ public class Slideshow extends ActionBarActivity {
         setContentView(R.layout.activity_slideshow);
         SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
         myLearner = new RSSILearner(0.2);
+        trainingCaptures = new ArrayList<Capture>();
         this.isCaptureActive = false;
+
+        // get checked networks
+        if ( settings.getBoolean("UseNet1", false)) {
+            macsToBeUsed.add(settings.getString("MAC01", "ee:ee:ee:ee:ee:ee"));
+        }
+        if ( settings.getBoolean("UseNet2", false)) {
+            macsToBeUsed.add(settings.getString("MAC02", "ee:ee:ee:ee:ee:ee"));
+        }
+        if ( settings.getBoolean("UseNet3", false)) {
+            macsToBeUsed.add(settings.getString("MAC03", "ee:ee:ee:ee:ee:ee"));
+        }
+        if ( settings.getBoolean("UseNet4", false)) {
+            macsToBeUsed.add(settings.getString("MAC04", "ee:ee:ee:ee:ee:ee"));
+        }
+        if ( settings.getBoolean("UseNet5", false)) {
+            macsToBeUsed.add(settings.getString("MAC05", "ee:ee:ee:ee:ee:ee"));
+        }
     }
 
 
@@ -87,7 +113,7 @@ public class Slideshow extends ActionBarActivity {
 
         final ImageView image;
         image = (ImageView) findViewById(R.id.slideshowView);
-        System.out.println("Capturing disturbed data");
+
         System.out.println(image.toString());
         //image.setImageResource(movementList[currentMovementImageID]);
 
@@ -95,7 +121,7 @@ public class Slideshow extends ActionBarActivity {
         double time = getSysTime();
         System.out.println("START TRAINING");
         isCaptureActive = true;
-        new TrainingThisTask(5,classesToBeTrained, timeslicetime, 0,0).execute();
+        new TrainingTask(5,classesToBeTrained, timeslicetime, 0,0).execute();
         System.out.println("Done here");
         System.out.println("Training data successfully created");
 
@@ -123,17 +149,7 @@ public class Slideshow extends ActionBarActivity {
         this.captureTime = captureTime;
     }
 
-    private void recordIntoFile(String filename) {
-        new StartTcpdumpTask().record(captureTime,filename);
-        try {
-            System.out.println("WE SHOULD SLEEP HERE");
-            TimeUnit.SECONDS.sleep(captureTime + 1);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        scanTask.cancel(true);
-    }
+
 
     private double getSysTime() {
         DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSSS");
@@ -150,7 +166,7 @@ public class Slideshow extends ActionBarActivity {
         return rand.nextInt((max - min) + 1) + min;
     }
 
-    private class TrainingThisTask extends AsyncTask<Void, Void, Integer> {
+    private class TrainingTask extends AsyncTask<Void, Void, Integer> {
 
         private int timeSliceDuration;
 
@@ -162,7 +178,7 @@ public class Slideshow extends ActionBarActivity {
 
         int count;
 
-        public TrainingThisTask( int numberOfTimeSlices, int [] classesToBeTrained, int timeSliceDuration, int pos, int count){
+        public TrainingTask(int numberOfTimeSlices, int[] classesToBeTrained, int timeSliceDuration, int pos, int count){
             this.timeSliceDuration = timeSliceDuration;
             this.numberOfTimeSlices = numberOfTimeSlices;
             this.classesToBeTrained = classesToBeTrained;
@@ -181,11 +197,17 @@ public class Slideshow extends ActionBarActivity {
 
         @Override
         protected Integer doInBackground(Void... params) {
+            Capture cap;
             try {
                 TimeUnit.MILLISECONDS.sleep(100);
-                // RECORD
+                double time = getSysTime();
+                System.out.println("Previous task should have been finished");
+                new StartTcpdumpTask().record(timeSliceDuration, "TRAINING" + count);
                 System.out.println("WE SHOULD SLEEP HERE");
-                TimeUnit.SECONDS.sleep(timeSliceDuration);
+                TimeUnit.SECONDS.sleep(timeSliceDuration+1);
+                cap = red.readFile("/sdcard/wifiJedi_data/TRAINING" + count + ".rssi",time,time+timeSliceDuration);
+                trainingCaptures.add(cap);
+                System.out.println(cap);
                 TimeUnit.MILLISECONDS.sleep(100);
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
@@ -199,11 +221,25 @@ public class Slideshow extends ActionBarActivity {
             if ( count < numberOfTimeSlices*classesToBeTrained.length && isCaptureActive) {
                 System.out.println("Run new task");
                 System.out.println(count);
-                new TrainingThisTask(this.numberOfTimeSlices,this.classesToBeTrained, this.timeSliceDuration, this.pos++%this.classesToBeTrained.length,  this.count+1).execute();
+                new TrainingTask(this.numberOfTimeSlices,this.classesToBeTrained, this.timeSliceDuration, this.pos++%this.classesToBeTrained.length,  this.count+1).execute();
             } else {
                 System.out.println("Done for the day");
                 ImageView image = (ImageView) findViewById(R.id.slideshowView);
                 image.setImageResource(android.R.color.transparent);
+                //@TODO: TMP
+                double t_1 = getSysTime();
+                for( String m : macsToBeUsed ) {
+                    System.out.println("Currently looking at this MAC:");
+                    System.out.println(m);
+                    System.out.println("Printing features");
+                    List<double[]> f;
+                    for( Capture c: trainingCaptures ) {
+                        //f = c.getNetworkFeatures(m, 0.2);
+                        c.splitData(0.2);
+                    }
+                }
+                System.out.println("Time: " + (getSysTime() - t_1));
+                //trainingCaptures.get(trainingCaptures.size()-1).printNodes();
                 return;
             }
         }

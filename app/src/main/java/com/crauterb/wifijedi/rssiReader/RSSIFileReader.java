@@ -81,7 +81,7 @@ public class RSSIFileReader {
         try {
             while( (line = br.readLine()) != null ) {
                 //TODO: All offset for the parsing of the tcpdump values is hardcoded ---> Change that?
-                System.out.println(line);
+                //System.out.println(line);
                 //
                 // Read the Source MAC Address
                 //
@@ -89,7 +89,7 @@ public class RSSIFileReader {
                     pos = line.indexOf("SA:");
                     mac = line.substring(pos+3,pos+20);
                 } else {
-                    System.out.println("No MAC-address recorded");
+                    //System.out.println("No MAC-address recorded");
                     mac = "";
                 }
                 //
@@ -99,7 +99,7 @@ public class RSSIFileReader {
                     pos = line.indexOf("Beacon");
                     pos = pos + 8;
                     if ( line.charAt(pos) == ')' || line.charAt(pos) == ']') {
-                        System.out.println("ERROR: NO BEACON SET");
+                        //System.out.println("ERROR: NO BEACON SET");
                         beacon = "";
                     } else {
                         int s;
@@ -108,7 +108,7 @@ public class RSSIFileReader {
 
                     }
                 } else {
-                    System.out.println("ERROR. NO BEACON RECORDED");
+                    //System.out.println("ERROR. NO BEACON RECORDED");
                     beacon = "";
                 }
 
@@ -129,9 +129,13 @@ public class RSSIFileReader {
                 time += (Double.parseDouble(line.substring(0,2)) * 60.0 * 60.0);
                 time += (Double.parseDouble(line.substring(3,5)) * 60.0);
                 time += (Double.parseDouble(line.substring(6,15)));
+                System.out.println("Check this out");
+                System.out.println(line);
+                System.out.println(time + " : " + rssi + " [ " + mac + " : " + beacon + " ]");
 
-                // We now have mac, beacon, rssi and time set.
-                tmpNode = new Node(time,rssi);
+
+                // We now have mac, beacon, rssi and ti me set.
+                tmpNode = new Node(time,rssi,mac);
                 newCapture.addNode(tmpNode);
                 if ( ! newCapture.isNetworkRecorded(mac)) {
                     newCapture.addNetwork(mac,beacon);
@@ -148,6 +152,7 @@ public class RSSIFileReader {
             //TODO: Implement a good way --> Exceptions
             return null;
         }
+        System.out.println(newCapture);
         return newCapture;
     }
 
@@ -180,6 +185,8 @@ public class RSSIFileReader {
 
         return starttime;
     }
+
+
 
 
 }

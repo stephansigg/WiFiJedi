@@ -13,7 +13,7 @@ import eu.chainfire.libsuperuser.Shell;
 /**
  * Created by christoph on 26.01.15.
  */
-public class StartTcpdumpTask extends AsyncTask<String, Void, Integer> {
+public class StartTcpdumpTask extends AsyncTask<Object, Void, Integer> {
 
     /** Need parameter here for recording time */
     private int time;
@@ -28,14 +28,17 @@ public class StartTcpdumpTask extends AsyncTask<String, Void, Integer> {
         Shell.SU.run("mkdir -p /sdcard/wifiJedi_data");
     }
     @Override
-    public Integer doInBackground(String... filename) {
-
-        String delCommand = "rm /sdcard/wifiJedi_data/" + filename + ".rssi";
-        Shell.SU.run(delCommand );
+    public Integer doInBackground(Object... params) {
+        String filename = (String) params[0];
+        //boolean append = (Boolean) params[1];
+        //if ( !append) {
+            String delCommand = "rm /sdcard/wifiJedi_data/" + filename + ".rssi";
+            Shell.SU.run(delCommand);
+        //}
         String cdCommand = "cd /sdcard/wifiJedi_data";
-        System.out.println("Write recorded stuff to file: " + filename[0]);
+        System.out.println("Write recorded stuff to file: " + filename);
         String command = "tcpdump -vvv -i eth0  -e -s0 > ./";
-        command += filename[0] + ".rssi ";
+        command += filename + ".rssi ";
         command += "& sleep ";
         command += this.time;
         command += "; kill $! ";
@@ -48,6 +51,7 @@ public class StartTcpdumpTask extends AsyncTask<String, Void, Integer> {
     }
     
     public void onPostExecute(Integer result) {
+        System.out.println("RECORDING DONE");
         Shell.SU.run("pkill tcpdump");
         return;
     }

@@ -56,6 +56,8 @@ public class RSSILearner {
     public static final int POS_MAC = 5;
     /** Position to count for the Class Label*/
     public static final int POS_LABEL = 6;
+    /** Number of features */
+    public static final int NUMBER_OF_FEATURES = 5;
 
     //private Classifier svm;
 
