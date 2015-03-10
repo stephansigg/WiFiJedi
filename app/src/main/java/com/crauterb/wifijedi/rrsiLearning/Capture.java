@@ -136,11 +136,12 @@ public class Capture {
         }
     }
 
-    public void splitData(double timeSlotLength) {
+    public ArrayList<Double[]> splitData(double timeSlotLength) {
         ArrayList<Integer> slot = new ArrayList<Integer>();
+        ArrayList<Double[]> all_features = new ArrayList<Double[]>();
         ArrayList<ArrayList<Integer>> allSlots = new ArrayList<ArrayList<Integer>>();
         double time = this.startTime + timeSlotLength;
-        System.out.println("Start! "+ this.startTime );
+        //System.out.println("Start! "+ this.startTime );
         String t = "[ ";
         double newStart = data.get(0).timestamp;
         time = newStart;
@@ -151,39 +152,69 @@ public class Capture {
             } else {
                 allSlots.add(slot);
                 t += "]";
-                System.out.println(t);
+                //System.out.println(t);
                 slot = new ArrayList<Integer>();
                 slot.add(n.RSSI);
                 time += timeSlotLength;
                 t = "[ ";
             }
         }
-        // COmputing features
+        /*for( int i = 0; i < allSlots.size(); i++ ) {
+            System.out.print("Slot: [");
+            for( int j = 0; j < allSlots.get(i).size(); j++) {
+                System.out.print(allSlots.get(i).get(j) +" ,");
+            }
+            System.out.println("]");
+        }*/
+        // Computing features
         DescriptiveStatistics stats = new DescriptiveStatistics();
-        double[] features = new double[RSSILearner.NUMBER_OF_FEATURES];
+        Double[] features;
+        double feat = 0.0;
         for( ArrayList<Integer> li : allSlots){
+            features = new Double[RSSILearner.NUMBER_OF_FEATURES];
             for( int x : li) {
                 stats.addValue((double) x);
             }
-            features[RSSILearner.POS_RSSIMEAN] = stats.getMean();
-            features[RSSILearner.POS_RSSIMAX] = stats.getMax();
-            features[RSSILearner.POS_RSSIMIN] = stats.getMin();
-            features[RSSILearner.POS_RSSISTD] = stats.getStandardDeviation();
-            features[RSSILearner.POS_NUMBEROFRSSI] = li.size();
-            System.out.println("Computed Feature");
+            feat = stats.getMean();
+            if ( feat == Double.NaN)
+                features[RSSILearner.POS_RSSIMEAN] = 0.0;
+            else
+                features[RSSILearner.POS_RSSIMEAN] = feat;
+            feat = stats.getMax();
+            if ( feat == Double.NaN)
+                features[RSSILearner.POS_RSSIMAX] = 0.0;
+            else
+                features[RSSILearner.POS_RSSIMAX] = feat;
+
+            feat = stats.getMin();
+            if ( feat == Double.NaN)
+                features[RSSILearner.POS_RSSIMIN] = 0.0;
+            else
+                features[RSSILearner.POS_RSSIMIN] = feat;
+
+            feat = stats.getStandardDeviation();
+            if ( feat == Double.NaN)
+                features[RSSILearner.POS_RSSISTD] = 0.0;
+            else
+                features[RSSILearner.POS_RSSISTD] = feat;
+            features[RSSILearner.POS_NUMBEROFRSSI] = 1.0 * li.size();
+            /*System.out.println("Computed Feature");
             t = "f_[";
             for( int i = 0; i < features.length; i++) {
                 t += features[i] + ",";
             }
             t += "]";
-            System.out.println(t);
+            System.out.println(t);*/
+            stats.clear();
+            all_features.add(features);
         }
 
 
-        System.out.println("Ende! " + this.endTime);
+        //System.out.println("Ende! " + this.endTime);
         double num = (this.endTime - this.startTime) / timeSlotLength;
-        System.out.println(num);
-        System.out.println(allSlots.size());
+        //System.out.println(num);
+        //System.out.println(allSlots.size());
+        return all_features;
     }
 
 

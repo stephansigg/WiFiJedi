@@ -1,5 +1,7 @@
 package com.crauterb.wifijedi.rrsiLearning;
 
+import net.sf.javaml.classification.Classifier;
+import net.sf.javaml.classification.KNearestNeighbors;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
@@ -9,6 +11,9 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.util.ArrayList;
 import java.util.List;
+
+//import weka.classifiers.Classifier;
+//import weka.core.Instance;
 
 /**
  * Created by christoph on 10.02.15.
@@ -28,17 +33,17 @@ public class RSSILearner {
     public static String FILENAME_CLASS_ADD_TWO = "train_additional_class02";
 
     /** Variable to count for undisturbed data*/
-    public static final int UNDISTURBED = 0;
+    public static final int UNDISTURBED = 4;
     /** Variable to count for Movement of a hand from left to right*/
-    public static final int MOV_LEFTTORIGHT = 1;
+    public static final int MOV_LEFTTORIGHT = 0;
     /** Varibale to count for Movement of a hand from right to left*/
-    public static final int MOV_RIGHTTOLEFT = 2;
+    public static final int MOV_RIGHTTOLEFT = 1;
     /** Variable to count for Movement of a hand down towards the phone*/
-    public static final int MOV_DOWNTOWARDS = 3;
+    public static final int MOV_DOWNTOWARDS = 2;
     /** Variable to count for Movement of a hand upwards from the phone*/
-    public static final int MOV_UPWARDSFROM = 4;
+    public static final int MOV_UPWARDSFROM = 3;
     /** Variable to account for the number of classes*/
-    public static final int NUMBER_OF_CLASSES = 5;
+    public static final int NUMBER_OF_CLASSES = 6;
     /** Varuable to indicate a label to be determined*/
     public static final int LABEL_NOT_DETERMINED = -1;
 
@@ -59,6 +64,8 @@ public class RSSILearner {
     /** Number of features */
     public static final int NUMBER_OF_FEATURES = 5;
 
+    private Classifier knn = new KNearestNeighbors(7);
+
     //private Classifier svm;
 
     //private Classifier[] netSVMS;
@@ -78,6 +85,7 @@ public class RSSILearner {
     }
 
     public void addLearningData(List<double[]> data, int label ) {
+        System.out.println("Trying to add learning data... ");
         for (double[] l : data) {
             Instance tmpInstance = new DenseInstance(l,label);
             this.learningData.add(tmpInstance);
@@ -91,22 +99,41 @@ public class RSSILearner {
         }
     }
 
+    public void trainClassifier() {
+        knn.buildClassifier(this.learningData);
+    }
+
 
     public int classify(List<double[]> data) {
         Dataset DataToClassify = new DefaultDataset();
         int[] numbers = new int[NUMBER_OF_CLASSES];
+
         for( double[] d : data) {
+            System.out.print("feature[");
+            for( int j = 0; j < d.length; j++) {
+                System.out.print(d[j] + " ,");
+            }
+            System.out.println("]");
             DataToClassify.add(new DenseInstance(d));
         }
         try {
             for( Instance i : DataToClassify) {
-                //numbers[(Integer) this.svm.classify(i)]++;
+                Object predictedClassValue = knn.classify(i);
+                System.out.println("Prediction is: " + predictedClassValue);
+                numbers[(Integer) this.knn.classify(i)]++;
             }
         } catch ( Exception e ) {
             System.out.println("ERROR WHILST CLASSIFYING");
+            e.printStackTrace();
             return -1;
         }
-        return max(numbers);
+        int m = max(numbers);
+        for( int i = 0; i < numbers.length; i++) {
+            if ( numbers[i] == m ) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**

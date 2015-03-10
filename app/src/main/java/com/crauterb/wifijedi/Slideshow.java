@@ -29,7 +29,7 @@ public class Slideshow extends ActionBarActivity {
 
     private static Random rand = new Random();
 
-    final private static int[] movementList = new int[]{R.drawable.swipeleft, R.drawable.swiperight, R.drawable.towards, R.drawable.away};
+    final private static int[] movementList = new int[]{R.drawable.swipeleft, R.drawable.swiperight, R.drawable.towards, R.drawable.away, R.drawable.x};
     final private static int[] stop = new int[]{R.drawable.stop};
     final private static int[] imageList = new int[] {R.drawable.image1, R.drawable.image2, R.drawable.image3, R.drawable.image4, R.drawable.image5, R.drawable.image6};
     private  int currentImageID = 0;
@@ -39,13 +39,16 @@ public class Slideshow extends ActionBarActivity {
     public static int MOVEMENT_SWIPERIGHT = 1;
     public static int MOVEMENT_TOWARDS = 2;
     public static int MOVEMENT_AWAY = 3;
+    public static int MOVEMENT_NONE = 4;
 
     public int pos;
-    int[] classesToBeTrained  = {MOVEMENT_SWIPELFT, MOVEMENT_TOWARDS};
+    int[] classesToBeTrained  = {MOVEMENT_SWIPELFT, MOVEMENT_TOWARDS, MOVEMENT_NONE};
     int numberOfTimeSlices = 5;
     Set<String> macsToBeUsed = new HashSet<String>();
 
     ArrayList<Capture> trainingCaptures;
+
+    ArrayList<Double[]> trainingFeatures = new ArrayList<Double[]>();
 
 
     private boolean isCaptureActive = false;
@@ -53,7 +56,7 @@ public class Slideshow extends ActionBarActivity {
     private RSSIFileReader red = new RSSIFileReader();
 
     private int captureTime = 5;
-    public RSSILearner myLearner = new RSSILearner(0.2);;
+    public RSSILearner myLearner = new RSSILearner(0.2);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,7 +193,7 @@ public class Slideshow extends ActionBarActivity {
         protected void onPreExecute() {
             ImageView image = (ImageView) findViewById(R.id.slideshowView);
             if ( count < numberOfTimeSlices*classesToBeTrained.length && isCaptureActive) {
-                image.setImageResource(movementList[classesToBeTrained[pos++ % classesToBeTrained.length]]);
+                image.setImageResource(movementList[classesToBeTrained[pos % classesToBeTrained.length]]);
             }
         }
 
@@ -207,7 +210,39 @@ public class Slideshow extends ActionBarActivity {
                 TimeUnit.SECONDS.sleep(timeSliceDuration+1);
                 cap = red.readFile("/sdcard/wifiJedi_data/TRAINING" + count + ".rssi",time,time+timeSliceDuration);
                 trainingCaptures.add(cap);
-                System.out.println(cap);
+                Double[] new_F;
+                int currentLabel = classesToBeTrained[pos++ % classesToBeTrained.length];
+                List<double[]> feat = new ArrayList<double[]>();
+                double[] fe;
+                System.out.println("Converting features");
+                for( Double[] f : cap.splitData(0.2)) {
+                    fe = new double[RSSILearner.NUMBER_OF_FEATURES];
+                    /*trainingFeatures.add(f);
+                    int count = 0;
+                    for( Double d : f ) {
+                        fe[count] = f[count];
+
+                        count++;
+                    }
+                    System.out.print("[");
+                    for( int i = 0; i < fe.length; i++) {
+                        System.out.print(fe[i]);
+                    }
+                    System.out.println("]");*/
+                    //System.out.println(fe);
+                    feat.add(new double[]{f[0],f[1],f[2],f[3],f[4]});
+                }
+                /*for( int i = 0; i < feat.size(); i++ ) {
+                    System.out.print("[");
+                    for( int j = 0; j < feat.get(i).length; j++) {
+                        System.out.print(feat.get(i)[j] +" ,");
+                    }
+                    System.out.println("]");
+                }*/
+                myLearner.addLearningData(feat,currentLabel);
+                System.out.println("Succesfully added learning data with label: " + currentLabel);
+
+                //System.out.println(cap);
                 TimeUnit.MILLISECONDS.sleep(100);
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
@@ -228,17 +263,8 @@ public class Slideshow extends ActionBarActivity {
                 image.setImageResource(android.R.color.transparent);
                 //@TODO: TMP
                 double t_1 = getSysTime();
-                for( String m : macsToBeUsed ) {
-                    System.out.println("Currently looking at this MAC:");
-                    System.out.println(m);
-                    System.out.println("Printing features");
-                    List<double[]> f;
-                    for( Capture c: trainingCaptures ) {
-                        //f = c.getNetworkFeatures(m, 0.2);
-                        c.splitData(0.2);
-                    }
-                }
-                System.out.println("Time: " + (getSysTime() - t_1));
+
+                //System.out.println("Time: " + (getSysTime() - t_1));
                 //trainingCaptures.get(trainingCaptures.size()-1).printNodes();
                 return;
             }
@@ -253,6 +279,7 @@ public class Slideshow extends ActionBarActivity {
 
         @Override
         protected void onPreExecute() {
+            //myLearner.trainClassifier();
 
         }
 
@@ -262,30 +289,66 @@ public class Slideshow extends ActionBarActivity {
 
         @Override
         protected Integer doInBackground(Void... params) {
+            Capture cap;
+            int result;
             try {
                 TimeUnit.MILLISECONDS.sleep(100);
-                // RECORD
+                double time = getSysTime();
+                System.out.println("Previous task should have been finished");
+                new StartTcpdumpTask().record(timeSliceDuration, "SLIDESHOW");
                 System.out.println("WE SHOULD SLEEP HERE");
-                TimeUnit.SECONDS.sleep(timeSliceDuration);
-                TimeUnit.MILLISECONDS.sleep(100);
+                TimeUnit.SECONDS.sleep(timeSliceDuration+1);
+                cap = red.readFile("/sdcard/wifiJedi_data/SLIDESHOW.rssi",time,time+timeSliceDuration);
+                //trainingCaptures.add(cap);
+                Double[] new_F;
+                //int currentLabel = numberOfTimeSlices*classesToBeTrained.length;
+                List<double[]> feat = new ArrayList<double[]>();
+                double[] fe = new double[RSSILearner.NUMBER_OF_FEATURES];
+                for( Double[] f : cap.splitData(0.2)) {
+                    fe = new double[RSSILearner.NUMBER_OF_FEATURES];
+                    //trainingFeatures.add(f);
+                    /*int count = 0;
+                    System.out.print("[");
+                    for( int i = 0; i < f.length; i++) {
+                        System.out.print(f[i]);
+                    }
+                    for( Double d : f ) {
+                        fe[count] = f[count];
+                        count++;
+                    }
+                    System.out.print("[");
+                    for( int i = 0; i < fe.length; i++) {
+                        System.out.print(fe[i]);
+                    }
+                    System.out.println("]");*/
+
+                    feat.add(new double[]{f[0],f[1],f[2],f[3],f[4]});
+                }
+                result = myLearner.classify(feat);
+                System.out.println("Classification says: " +result);
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
                 return -1;
             }
-            return 1;
+            return result;
         }
 
         @Override
         public void onPostExecute(Integer result) {
             ImageView image = (ImageView) findViewById(R.id.slideshowView);
-            int label;
+            //int label;
 
             // EVALUATE THE READ VALUES
-            label = randInt(1,10);
-            System.out.println("Label = " + label);
-            if  ( label > 8 ) {
+            int label = randInt(1,10);
+            //System.out.println("Label = " + label);
+            if  (result == RSSILearner.MOV_LEFTTORIGHT && label > 8) {
                 image.setImageResource(imageList[(pos+1)%imageList.length]);
+            } else if ( result == RSSILearner.MOV_DOWNTOWARDS) {
+                System.out.println("Stopping capture");
+                isCaptureActive = false;
+            } else if ( result == RSSILearner.UNDISTURBED) {
+                System.out.println("No movement. Do nothing");
             }
             if ( isCaptureActive )
                 new AnalyzeTask(pos+1).execute();

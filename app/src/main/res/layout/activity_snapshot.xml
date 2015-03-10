@@ -19,8 +19,8 @@
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:onClick="takeSnapshot"
-            android:text="SNAP" />
+            android:onClick="train"
+            android:text="TRAIN" />
 
         <Button
             android:id="@+id/btnStartDump"
@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="top"
             android:layout_weight="1"
-            android:onClick="startSnapshot"
+            android:onClick="startShowcase"
             android:text="START" />
 
         <Button
@@ -36,7 +36,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="STOP"
-            android:onClick="stopSnapshot" />
+            android:onClick="stopCapture" />
 
     </LinearLayout>
 

@@ -129,9 +129,9 @@ public class RSSIFileReader {
                 time += (Double.parseDouble(line.substring(0,2)) * 60.0 * 60.0);
                 time += (Double.parseDouble(line.substring(3,5)) * 60.0);
                 time += (Double.parseDouble(line.substring(6,15)));
-                System.out.println("Check this out");
-                System.out.println(line);
-                System.out.println(time + " : " + rssi + " [ " + mac + " : " + beacon + " ]");
+                //System.out.println("Check this out");
+                //System.out.println(line);
+                //System.out.println(time + " : " + rssi + " [ " + mac + " : " + beacon + " ]");
 
 
                 // We now have mac, beacon, rssi and ti me set.

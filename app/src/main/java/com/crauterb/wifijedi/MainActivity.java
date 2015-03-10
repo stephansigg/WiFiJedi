@@ -66,7 +66,7 @@ public class MainActivity extends ActionBarActivity {
             //DO SOMETHING
         }
         TextView tv = (TextView) findViewById(R.id.defautlText);
-        tv.setText("BcMon set up \nReady for analysis \nPlease press SCAN for a detailed setup and SLIDESHOW for a direct start with the Slideshow");
+        tv.setText("BcMon set up \nReady for analysis \nPlease press SCAN for a detailed setup or RECORD for recordinh .rssi files");
     }
 
     /**
