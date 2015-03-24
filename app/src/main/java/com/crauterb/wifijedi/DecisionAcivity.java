@@ -46,6 +46,11 @@ public class DecisionAcivity extends ActionBarActivity {
         startActivity(intent);
     }
 
+    public void goEvaluation(View view) {
+        Intent intent = new Intent(this, EvaluationAcitivity.class);
+        startActivity(intent);
+    }
+
     public void goBack(View view) {
         //StartTcpdumpTask scanTask = new StartTcpdumpTask();
         //scanTask.record(4,"initialScan");

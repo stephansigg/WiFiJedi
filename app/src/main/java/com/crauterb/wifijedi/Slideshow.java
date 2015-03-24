@@ -44,6 +44,7 @@ public class Slideshow extends ActionBarActivity {
     public int pos;
     int[] classesToBeTrained  = {MOVEMENT_SWIPELFT, MOVEMENT_TOWARDS, MOVEMENT_NONE};
     int numberOfTimeSlices = 5;
+
     Set<String> macsToBeUsed = new HashSet<String>();
 
     ArrayList<Capture> trainingCaptures;
@@ -55,8 +56,10 @@ public class Slideshow extends ActionBarActivity {
 
     private RSSIFileReader red = new RSSIFileReader();
 
+    double sliceDuration;
+    int k;
     private int captureTime = 5;
-    public RSSILearner myLearner = new RSSILearner(0.2);
+    public RSSILearner myLearner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +86,17 @@ public class Slideshow extends ActionBarActivity {
         if ( settings.getBoolean("UseNet5", false)) {
             macsToBeUsed.add(settings.getString("MAC05", "ee:ee:ee:ee:ee:ee"));
         }
+        System.out.println("Following macs are to be used");
+        System.out.println(macsToBeUsed);
+        for( String s : macsToBeUsed) {
+            System.out.println(s);
+        }
+
+        this.numberOfTimeSlices = settings.getInt("Parameter_cicle", 5);
+        this.sliceDuration = (double) settings.getFloat("Parameter_duration", (float) 0.2);
+        this.k = settings.getInt("Parameter_k", 7);
+
+        myLearner = new RSSILearner(sliceDuration,k);
     }
 
 
@@ -124,7 +138,7 @@ public class Slideshow extends ActionBarActivity {
         double time = getSysTime();
         System.out.println("START TRAINING");
         isCaptureActive = true;
-        new TrainingTask(5,classesToBeTrained, timeslicetime, 0,0).execute();
+        new TrainingTask(numberOfTimeSlices,classesToBeTrained, timeslicetime, 0,0).execute();
         System.out.println("Done here");
         System.out.println("Training data successfully created");
 
@@ -208,8 +222,11 @@ public class Slideshow extends ActionBarActivity {
                 new StartTcpdumpTask().record(timeSliceDuration, "TRAINING" + count);
                 System.out.println("WE SHOULD SLEEP HERE");
                 TimeUnit.SECONDS.sleep(timeSliceDuration+1);
-                cap = red.readFile("/sdcard/wifiJedi_data/TRAINING" + count + ".rssi",time,time+timeSliceDuration);
+                cap = red.readFile("/sdcard/wifiJedi_data/TRAINING" + count + ".rssi",time,time+timeSliceDuration, macsToBeUsed);
                 trainingCaptures.add(cap);
+                if ( cap.isEmpty() ) {
+                    System.out.println("LEEEEER");
+                }
                 Double[] new_F;
                 int currentLabel = classesToBeTrained[pos++ % classesToBeTrained.length];
                 List<double[]> feat = new ArrayList<double[]>();
@@ -217,6 +234,13 @@ public class Slideshow extends ActionBarActivity {
                 System.out.println("Converting features");
                 for( Double[] f : cap.splitData(0.2)) {
                     fe = new double[RSSILearner.NUMBER_OF_FEATURES];
+                    System.out.print("[");
+                    for( int i = 0; i < f.length; i++) {
+                        System.out.print(f[i] + " ");
+                        if ( i != f.length - 1 )
+                            System.out.print(", ");
+                    }
+                    System.out.print("]");
                     /*trainingFeatures.add(f);
                     int count = 0;
                     for( Double d : f ) {
@@ -230,7 +254,7 @@ public class Slideshow extends ActionBarActivity {
                     }
                     System.out.println("]");*/
                     //System.out.println(fe);
-                    feat.add(new double[]{f[0],f[1],f[2],f[3],f[4]});
+                    feat.add(new double[]{f[0],f[1],0.0,0.0,f[4]});
                 }
                 /*for( int i = 0; i < feat.size(); i++ ) {
                     System.out.print("[");
@@ -256,6 +280,7 @@ public class Slideshow extends ActionBarActivity {
             if ( count < numberOfTimeSlices*classesToBeTrained.length && isCaptureActive) {
                 System.out.println("Run new task");
                 System.out.println(count);
+                System.out.println("Number of training rounds: " + numberOfTimeSlices);
                 new TrainingTask(this.numberOfTimeSlices,this.classesToBeTrained, this.timeSliceDuration, this.pos++%this.classesToBeTrained.length,  this.count+1).execute();
             } else {
                 System.out.println("Done for the day");
@@ -279,7 +304,7 @@ public class Slideshow extends ActionBarActivity {
 
         @Override
         protected void onPreExecute() {
-            //myLearner.trainClassifier();
+            myLearner.trainClassifier();
 
         }
 
@@ -298,8 +323,11 @@ public class Slideshow extends ActionBarActivity {
                 new StartTcpdumpTask().record(timeSliceDuration, "SLIDESHOW");
                 System.out.println("WE SHOULD SLEEP HERE");
                 TimeUnit.SECONDS.sleep(timeSliceDuration+1);
-                cap = red.readFile("/sdcard/wifiJedi_data/SLIDESHOW.rssi",time,time+timeSliceDuration);
+                cap = red.readFile("/sdcard/wifiJedi_data/SLIDESHOW.rssi",time,time+timeSliceDuration, macsToBeUsed);
                 //trainingCaptures.add(cap);
+                if ( cap.isEmpty() ) {
+                    System.out.println("LEEEEER");
+                }
                 Double[] new_F;
                 //int currentLabel = numberOfTimeSlices*classesToBeTrained.length;
                 List<double[]> feat = new ArrayList<double[]>();
@@ -310,8 +338,13 @@ public class Slideshow extends ActionBarActivity {
                     /*int count = 0;
                     System.out.print("[");
                     for( int i = 0; i < f.length; i++) {
-                        System.out.print(f[i]);
-                    }
+                        if ( i == 2 && i == 3)
+                            System.out.print(f[i]);
+                        else
+                            System.out.print("0.0");
+                        if ( i != f.length - 1 )
+                            System.out.print(", ");
+                    }/*
                     for( Double d : f ) {
                         fe[count] = f[count];
                         count++;
@@ -319,10 +352,10 @@ public class Slideshow extends ActionBarActivity {
                     System.out.print("[");
                     for( int i = 0; i < fe.length; i++) {
                         System.out.print(fe[i]);
-                    }
-                    System.out.println("]");*/
+                    }*/
+                    System.out.println("]");
 
-                    feat.add(new double[]{f[0],f[1],f[2],f[3],f[4]});
+                    feat.add(new double[]{f[0],f[1],0.0,0.0,f[4]});
                 }
                 result = myLearner.classify(feat);
                 System.out.println("Classification says: " +result);
@@ -342,7 +375,7 @@ public class Slideshow extends ActionBarActivity {
             // EVALUATE THE READ VALUES
             int label = randInt(1,10);
             //System.out.println("Label = " + label);
-            if  (result == RSSILearner.MOV_LEFTTORIGHT && label > 8) {
+            if  (result == RSSILearner.MOV_LEFTTORIGHT) {
                 image.setImageResource(imageList[(pos+1)%imageList.length]);
             } else if ( result == RSSILearner.MOV_DOWNTOWARDS) {
                 System.out.println("Stopping capture");

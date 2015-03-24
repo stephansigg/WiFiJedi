@@ -10,12 +10,14 @@ package com.crauterb.wifijedi.rssiReader;
 
 import com.crauterb.wifijedi.rrsiLearning.Capture;
 import com.crauterb.wifijedi.rrsiLearning.Node;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Set;
 
 
 /**
@@ -31,12 +33,16 @@ public class RSSIFileReader {
 
     public String[] text = {"","","","",""};
 
+    public Capture readFile(String file, double start, double end) {
+        return readFile(file,start,end,null);
+    }
+
     /**
      * This method reads the information provided by TCPDUMP and written into a file into a list of DataNodes
      * @param file The name of the file containing the read tcpdump lines
      * @return A list containing DataNodes, that provide the information form the TCPDUMP-file
      */
-    public Capture readFile(String file, double start, double end) {
+    public Capture readFile(String file, double start, double end,Set<String> macstobeused) {
 
         // Start a capture
         Capture newCapture = new Capture(start,end);
@@ -136,14 +142,27 @@ public class RSSIFileReader {
 
                 // We now have mac, beacon, rssi and ti me set.
                 tmpNode = new Node(time,rssi,mac);
-                newCapture.addNode(tmpNode);
-                if ( ! newCapture.isNetworkRecorded(mac)) {
-                    newCapture.addNetwork(mac,beacon);
+                if ( macstobeused == null) {
+                    newCapture.addNode(tmpNode);
+                    if (!newCapture.isNetworkRecorded(mac)) {
+                        newCapture.addNetwork(mac, beacon);
 
-                } else if ( newCapture.isNetworkRecorded(mac) && ! newCapture.isSSIDRecorded(beacon)) {
-                    newCapture.getNetworkByMAC(mac).setSSID(beacon);
+                    } else if (newCapture.isNetworkRecorded(mac) && !newCapture.isSSIDRecorded(beacon)) {
+                        newCapture.getNetworkByMAC(mac).setSSID(beacon);
+                    }
+                    newCapture.getNetworkByMAC(mac).addNode(tmpNode);
+                } else {
+                    if ( macstobeused.contains(mac) || mac.equals("") || mac == "") {
+                        newCapture.addNode(tmpNode);
+                        if (!newCapture.isNetworkRecorded(mac)) {
+                            newCapture.addNetwork(mac, beacon);
+
+                        } else if (newCapture.isNetworkRecorded(mac) && !newCapture.isSSIDRecorded(beacon)) {
+                            newCapture.getNetworkByMAC(mac).setSSID(beacon);
+                        }
+                        newCapture.getNetworkByMAC(mac).addNode(tmpNode);
+                    }
                 }
-                newCapture.getNetworkByMAC(mac).addNode(tmpNode);
 
             }
         } catch ( IOException e ) {
@@ -152,7 +171,7 @@ public class RSSIFileReader {
             //TODO: Implement a good way --> Exceptions
             return null;
         }
-        System.out.println(newCapture);
+        //System.out.println(newCapture);
         return newCapture;
     }
 

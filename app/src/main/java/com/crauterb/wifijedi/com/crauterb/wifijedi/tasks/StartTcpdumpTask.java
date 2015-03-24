@@ -36,7 +36,7 @@ public class StartTcpdumpTask extends AsyncTask<Object, Void, Integer> {
             Shell.SU.run(delCommand);
         //}
         String cdCommand = "cd /sdcard/wifiJedi_data";
-        System.out.println("Write recorded stuff to file: " + filename);
+        //System.out.println("Write recorded stuff to file: " + filename);
         String command = "tcpdump -vvv -i eth0  -e -s0 > ./";
         command += filename + ".rssi ";
         command += "& sleep ";
@@ -44,14 +44,14 @@ public class StartTcpdumpTask extends AsyncTask<Object, Void, Integer> {
         command += "; kill $! ";
 
         List<String> output =  Shell.SU.run(cdCommand + ";" + command);
-        System.out.println("tcpdumpoutput: " + output);
-        System.out.println(command);
-        System.out.println("--->Done Here");
+        //System.out.println("tcpdumpoutput: " + output);
+        //System.out.println(command);
+        //System.out.println("--->Done Here");
         return null;
     }
     
     public void onPostExecute(Integer result) {
-        System.out.println("RECORDING DONE");
+        //System.out.println("RECORDING DONE");
         Shell.SU.run("pkill tcpdump");
         return;
     }

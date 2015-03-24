@@ -1,5 +1,6 @@
 package com.crauterb.wifijedi;
 
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -43,7 +44,7 @@ public class Snapshot extends ActionBarActivity {
     int TAKE_PHOTO_CODE = 0;
 
     ArrayList<Capture> trainingCaptures;
-
+    int numberOfTimeSlices = 5;
     final private static int[] movementList = new int[]{R.drawable.swipeleft, R.drawable.swiperight, R.drawable.towards, R.drawable.away, R.drawable.x, R.drawable.q};
     final private static int[] stop = new int[]{R.drawable.stop};
 
@@ -55,8 +56,11 @@ public class Snapshot extends ActionBarActivity {
     public static int MOVEMENT_YES = 5;
     int[] classesToBeTrained  = {MOVEMENT_YES, MOVEMENT_NONE};
 
+    double sliceDuration;
+    int k;
 
-    public RSSILearner myLearner = new RSSILearner(0.2);
+    public RSSILearner myLearner;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,8 +96,12 @@ public class Snapshot extends ActionBarActivity {
         Camera.Parameters params = camera.getParameters();
         params.setJpegQuality(100);
         camera.setParameters(params);
+        SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
+        this.numberOfTimeSlices = settings.getInt("Parameter_cicle", 5);
+        this.sliceDuration = (double) settings.getFloat("Parameter_duration", (float) 0.2);
+        this.k = settings.getInt("Parameter_k", 7);
 
-
+        myLearner = new RSSILearner(sliceDuration,k);
     }
 
 
@@ -197,16 +205,7 @@ public class Snapshot extends ActionBarActivity {
         isCaptureActive = false;
     }
 
-    private void recordIntoFile(String filename) {
-        new StartTcpdumpTask().record(captureTime,filename);
-        try {
-            System.out.println("WE SHOULD SLEEP HERE");
-            TimeUnit.SECONDS.sleep(captureTime + 1);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
+
     private int randInt(int min, int max) {
 
         // nextInt is normally exclusive of the top value,
@@ -357,10 +356,10 @@ public class Snapshot extends ActionBarActivity {
                 TimeUnit.MILLISECONDS.sleep(100);
                 double time = getSysTime();
                 System.out.println("Previous task should have been finished");
-                new StartTcpdumpTask().record(timeSliceDuration, "SLIDESHOW");
+                new StartTcpdumpTask().record(timeSliceDuration, "SNAPSHOT");
                 System.out.println("WE SHOULD SLEEP HERE");
                 TimeUnit.SECONDS.sleep(timeSliceDuration+1);
-                cap = red.readFile("/sdcard/wifiJedi_data/SLIDESHOW.rssi",time,time+timeSliceDuration);
+                cap = red.readFile("/sdcard/wifiJedi_data/SNAPSHOT.rssi",time,time+timeSliceDuration);
                 //trainingCaptures.add(cap);
                 Double[] new_F;
                 //int currentLabel = numberOfTimeSlices*classesToBeTrained.length;

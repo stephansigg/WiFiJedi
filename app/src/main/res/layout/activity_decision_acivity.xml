@@ -47,4 +47,17 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Evaluation"
+        android:onClick="goEvaluation"
+        android:id="@+id/button2"
+        android:layout_below="@+id/DecSlideshow"
+        android:layout_marginTop="55dp"
+        android:layout_alignRight="@+id/DecSlideshow"
+        android:layout_alignEnd="@+id/DecSlideshow"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
 </RelativeLayout>

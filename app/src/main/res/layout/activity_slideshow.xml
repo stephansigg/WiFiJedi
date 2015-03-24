@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="top"
             android:layout_weight="1"
-            android:onClick="startSlideshow"
+            android:onClick="startEvaluation"
             android:text="START" />
 
         <Button
@@ -36,7 +36,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="STOP"
-            android:onClick="stopCapture" />
+            android:onClick="stopEvaluation" />
 
     </LinearLayout>
 

@@ -7,9 +7,6 @@ import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
 
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-
-import java.util.ArrayList;
 import java.util.List;
 
 //import weka.classifiers.Classifier;
@@ -64,7 +61,7 @@ public class RSSILearner {
     /** Number of features */
     public static final int NUMBER_OF_FEATURES = 5;
 
-    private Classifier knn = new KNearestNeighbors(7);
+    private Classifier knn;
 
     //private Classifier svm;
 
@@ -82,6 +79,15 @@ public class RSSILearner {
         //this.svm = new LibSVM();
         this.timeSlice = timeslice;
         this.noun = 1;
+        this.knn  = new KNearestNeighbors(7);
+    }
+
+    public RSSILearner(double timeslice, int k) {
+        this.learningData = new DefaultDataset();
+        //this.svm = new LibSVM();
+        this.timeSlice = timeslice;
+        this.noun = 1;
+        this.knn  = new KNearestNeighbors(k);
     }
 
     public void addLearningData(List<double[]> data, int label ) {
@@ -107,7 +113,10 @@ public class RSSILearner {
     public int classify(List<double[]> data) {
         Dataset DataToClassify = new DefaultDataset();
         int[] numbers = new int[NUMBER_OF_CLASSES];
-
+        int numberOfSlices = data.size();
+        System.out.println("I got " + numberOfSlices + " slices over here...");
+        int[] predClass = new int[numberOfSlices];
+        int count = 0;
         for( double[] d : data) {
             System.out.print("feature[");
             for( int j = 0; j < d.length; j++) {
@@ -119,7 +128,10 @@ public class RSSILearner {
         try {
             for( Instance i : DataToClassify) {
                 Object predictedClassValue = knn.classify(i);
+
                 System.out.println("Prediction is: " + predictedClassValue);
+                predClass[count] = (Integer) predictedClassValue;
+                count++;
                 numbers[(Integer) this.knn.classify(i)]++;
             }
         } catch ( Exception e ) {
@@ -128,11 +140,14 @@ public class RSSILearner {
             return -1;
         }
         int m = max(numbers);
+        int max_class = -1;
         for( int i = 0; i < numbers.length; i++) {
             if ( numbers[i] == m ) {
+                max_class = i;
                 return i;
             }
         }
+
         return -1;
     }
 
@@ -149,52 +164,13 @@ public class RSSILearner {
         return max;
     }
 
-    public void setUsedNetworks( int noun) {
-        this.noun = noun;
-        //this.netSVMS = new Classifier[noun];
-        this.netLearningData = new Dataset[noun];
-        for( int i = 0; i < netLearningData.length; i++) {
-            //netSVMS[i] = new LibSVM();
-            netLearningData[i] = new DefaultDataset();
-        }
-    }
+    private int findStreak(int[] field, int streaklength) {
 
-    public void constructLearningData( Capture cap, int label, String[] macs ) {
-        List<double[]> newData;
-        List<Integer> tmpRSSI;
-        Network newNet;
-        DescriptiveStatistics stats = new DescriptiveStatistics();
-        int numberOfTimeSlots = (int) ((cap.endTime - cap.startTime) / timeSlice);
-        double[] tmp;
-        double t_start = cap.startTime;
-        double t_end = cap.startTime + timeSlice;
-        if ( noun != macs.length)
-            System.out.println("FEHLER BEI IRGENDWO");
-        int i = 0;
-        for( String mac : macs) {
-            newData = new ArrayList<double[]>();
-            newNet = cap.getNetworkByMAC(mac);
-            while ( t_start < cap.endTime ) {
-                tmp = new double[5];
-                tmpRSSI = newNet.getTimeSlot(t_start,t_end);
-                for ( int r : tmpRSSI ) {
-                    stats.addValue((double) r);
-                }
-                tmp[POS_RSSIMEAN] = stats.getMean();
-                tmp[POS_RSSIMAX] = stats.getMax();
-                tmp[POS_RSSIMIN] = stats.getMin();
-                tmp[POS_RSSISTD] = stats.getStandardDeviation();
-                tmp[POS_NUMBEROFRSSI] = tmpRSSI.size();
-                newData.add(tmp);
-
-                t_start += timeSlice;
-                t_end += timeSlice;
-            }
-            // Now, one network is complete
-            addLearningDataToNet(newData, label, i);
+        int max = field.length - streaklength;
+        boolean found = false;
+        for( int i = 0 ; i < max; i++ ) {
 
         }
-
-        return;
+        return -1;
     }
 }

@@ -110,7 +110,7 @@ public class NetworkChecker extends ActionBarActivity {
         editor.putBoolean("UseNet4", ((CheckBox) findViewById(R.id.NetcheckBox4)).isChecked());
         editor.putBoolean("UseNet5", ((CheckBox) findViewById(R.id.NetcheckBox5)).isChecked());
         editor.commit();
-        Intent intent = new Intent(this, DecisionAcivity.class);
+        Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
 

@@ -25,6 +25,10 @@ public class Capture {
         this.endTime = endTime;
     }
 
+    public boolean isEmpty() {
+        return this.data.isEmpty();
+    }
+
     public boolean isNetworkRecorded(String mac ) {
         if ( this.networks == null)
             return false;
@@ -159,13 +163,13 @@ public class Capture {
                 t = "[ ";
             }
         }
-        /*for( int i = 0; i < allSlots.size(); i++ ) {
+        for( int i = 0; i < allSlots.size(); i++ ) {
             System.out.print("Slot: [");
             for( int j = 0; j < allSlots.get(i).size(); j++) {
                 System.out.print(allSlots.get(i).get(j) +" ,");
             }
             System.out.println("]");
-        }*/
+        }
         // Computing features
         DescriptiveStatistics stats = new DescriptiveStatistics();
         Double[] features;

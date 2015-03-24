@@ -17,5 +17,7 @@
     <string name="title_activity_record_thingy">RecordThingy</string>
     <string name="title_activity_decision_acivity">DecisionAcivity</string>
     <string name="title_activity_snapshot">Snapshot</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="title_activity_evaluation_acitivity">EvaluationAcitivity</string>
 
 </resources>
